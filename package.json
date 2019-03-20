@@ -26,6 +26,7 @@
     "nodemon": "^1.18.10"
   },
   "dependencies": {
+    "cookie-parser": "^1.4.4",
     "express": "^4.16.4",
     "formidable": "^1.2.1",
     "nconf": "^0.10.0",

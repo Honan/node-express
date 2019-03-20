@@ -18,6 +18,8 @@ const indexPost = (req, res) => {
   dataBase.save();
 
   res.render('pages/index', {
+    products: db.product().stores.file.store.products,
+    skills: db.skills().stores.file.store.skills,
     msgsemail: 'Данные успешно отправлены'
   });
 };
@@ -25,14 +27,23 @@ const indexPost = (req, res) => {
 const loginGet = (req, res) => res.render('pages/login');
 
 const loginPost = (req, res) => {
-  res.render('pages/login', {
-    msgsemail: 'Данные успешно отправлены'
-  });
+  const { email, password } = req.body;
+  if (email === 'test@test.ru' && password === 'admin') {
+    req.session.auth = true;
+    res.render('pages/admin');
+  } else {
+    res.render('pages/login', {
+      msgslogin: 'Не верные почта или пароль'
+    });
+  }
 };
 
-const adminGet = (req, res) => res.render('pages/admin');
+const adminGet = (req, res) => {
+  if (req.session.auth) { res.render('pages/admin'); } else { res.render('pages/login'); }
+};
 
 const skillsPost = (req, res) => {
+  if (!req.session.auth) { res.render('pages/login'); }
   const dataBase = db.skills();
   const { age, concerts, cities, years } = req.body;
   const skills = [
@@ -63,19 +74,21 @@ const skillsPost = (req, res) => {
 };
 
 const uploadPost = (req, res, next) => {
+  if (!req.session.auth) { res.render('pages/login'); }
+
   var form = new formidable.IncomingForm();
 
   let upload = path.join('./public', '/assets/img/products');
-  
+
   if (!fs.existsSync(upload)) {
     fs.mkdirSync(upload);
   }
 
   form.uploadDir = path.join(process.cwd(), upload);
-  
+
   form.parse(req, function (err, fields, files) {
     const dataBase = db.product();
-    const {name, price} = fields;
+    const { name, price } = fields;
 
     if (err) {
       return next(err);
@@ -111,10 +124,8 @@ const uploadPost = (req, res, next) => {
       res.render('pages/admin', {
         msgfile: 'Данные успешно отправлены'
       });
-
     });
   });
-
 };
 
 const validation = (fields, files) => {
